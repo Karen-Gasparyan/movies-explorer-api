@@ -6,46 +6,78 @@ const BadRequest = require('../errors/bad-request-error');
 
 module.exports.getMovies = (req, res, next) => {
   Movie.find({})
-    .then((cards) => {
-      res.send({ data: cards });
+    .then((movies) => {
+      const currentUserMovies = movies.filter((movie) => movie.owner.toString() === req.user._id);
+      return currentUserMovies;
+    })
+    .then((currentUserMovies) => {
+      if (currentUserMovies.length < 1) {
+        res.send({ message: 'В вашей коллекции нет сохраненных фильмов' });
+      } else {
+        res.send({ data: currentUserMovies });
+      }
     })
     .catch(next);
 };
 
 module.exports.createMovies = (req, res, next) => {
-  const { name, link } = req.body;
+  const {
+    country,
+    director,
+    duration,
+    year,
+    description,
+    image,
+    trailer,
+    thumbnail,
+    movieId,
+    nameRU,
+    nameEN,
+  } = req.body;
 
-  Movie.create({ name, link, owner: req.user._id })
-    .then((card) => res.send({ data: card }))
+  Movie.create({
+    country,
+    director,
+    duration,
+    year,
+    description,
+    image,
+    trailer,
+    thumbnail,
+    movieId,
+    nameRU,
+    nameEN,
+    owner: req.user._id })
+    .then((movie) => res.send({ data: movie }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные при создании карточки'));
+        next(new BadRequest('Переданы некорректные данные при сохранении фильма'));
       }
       next(error);
     });
 };
 
 module.exports.removeMovies = (req, res, next) => {
-  Movie.findOne({ _id: req.params.cardId })
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
+  Movie.findOne({ _id: req.params.movieId })
+    .then((movie) => {
+      if (!movie) {
+        throw new NotFoundError('Фильм с указанным id не найден');
       }
-      return card;
+      return movie;
     })
-    .then((foundCard) => {
-      if (foundCard.owner.toString() === req.user._id) {
-        return Movie.findByIdAndRemove(req.params.cardId)
-          .then((remoteCard) => {
-            res.send({ data: remoteCard });
+    .then((foundMovie) => {
+      if (foundMovie.owner.toString() === req.user._id) {
+        return Movie.findByIdAndRemove(req.params.movieId)
+          .then((remoteMovie) => {
+            res.send({ data: remoteMovie });
           })
           .catch(next);
       }
-      throw new Forbidden('Нет полномочий для удаления данной карточки');
+      throw new Forbidden('Нет полномочий для удаления данного фильма');
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        next(new NotFoundError('Карточка с указанным _id не найдена'));
+        next(new NotFoundError('Фильм с указанным id не найден'));
       }
       next(error);
     });

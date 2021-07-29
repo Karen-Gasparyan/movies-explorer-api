@@ -29,13 +29,6 @@ mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
 
 app.use(requestLogger);
 
-// app.get('/crash-test', () => {
-//   setTimeout(() => {
-//     throw new Error('Сервер сейчас упадёт');
-//   }, 0);
-// });
-
-// DONE!
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email().min(5),
@@ -43,7 +36,6 @@ app.post('/signin', celebrate({
   }),
 }), login);
 
-// DONE!
 app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
@@ -52,7 +44,6 @@ app.post('/signup', celebrate({
   }),
 }), createUser);
 
-// DONE!
 app.use(celebrate({
   headers: Joi.object({
     authorization: Joi.string().required(),
