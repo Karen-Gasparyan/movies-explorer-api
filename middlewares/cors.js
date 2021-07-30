@@ -1,7 +1,7 @@
 module.exports = ((req, res, next) => {
   const allowedCors = [
-    'https://yp.gks.mesto.nomoredomains.club',
-    'http://yp.gks.mesto.nomoredomains.club',
+    'https://gks.movies.nomoredomains.monster',
+    'http://gks.movies.nomoredomains.monster',
     'http://localhost:3000',
   ];
 
