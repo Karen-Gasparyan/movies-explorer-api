@@ -12,6 +12,7 @@ const NO_AUTHORITY = 'Нет полномочий для удаления дан
 
 // user
 const INVALID_DATA = 'Неправильные почта или пароль';
+const INCORRECT_EMAIL = 'Поле email заполнено некорректно';
 const SIGNUP_ERROR = 'Переданы некорректные данные при регистрации пользователя';
 const UPDATE_ERROR = 'Переданы некорректные данные при обновлении профиля';
 const CONFLICT_EMAIL = 'Пользователь с таким email уже зарегистрирован';
@@ -26,6 +27,7 @@ module.exports = {
   MOVIE_ID_NOT_FOUND,
   NO_AUTHORITY,
   INVALID_DATA,
+  INCORRECT_EMAIL,
   SIGNUP_ERROR,
   UPDATE_ERROR,
   CONFLICT_EMAIL,
