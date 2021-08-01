@@ -3,6 +3,12 @@ const Movie = require('../models/movie');
 const NotFoundError = require('../errors/not-found-error');
 const Forbidden = require('../errors/forbidden-error');
 const BadRequest = require('../errors/bad-request-error');
+const {
+  NO_MOVIES,
+  SAVING_ERROR,
+  MOVIE_ID_NOT_FOUND,
+  NO_AUTHORITY,
+} = require('../constants');
 
 module.exports.getMovies = (req, res, next) => {
   Movie.find({})
@@ -12,7 +18,7 @@ module.exports.getMovies = (req, res, next) => {
     })
     .then((currentUserMovies) => {
       if (currentUserMovies.length < 1) {
-        res.send({ message: 'В вашей коллекции нет сохраненных фильмов' });
+        res.send({ message: NO_MOVIES });
       } else {
         res.send({ data: currentUserMovies });
       }
@@ -47,11 +53,12 @@ module.exports.createMovies = (req, res, next) => {
     movieId,
     nameRU,
     nameEN,
-    owner: req.user._id })
+    owner: req.user._id,
+  })
     .then((movie) => res.send({ data: movie }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные при сохранении фильма'));
+        next(new BadRequest(SAVING_ERROR));
       }
       next(error);
     });
@@ -61,23 +68,23 @@ module.exports.removeMovies = (req, res, next) => {
   Movie.findOne({ _id: req.params.movieId })
     .then((movie) => {
       if (!movie) {
-        throw new NotFoundError('Фильм с указанным id не найден');
+        throw new NotFoundError(MOVIE_ID_NOT_FOUND);
       }
       return movie;
     })
     .then((foundMovie) => {
       if (foundMovie.owner.toString() === req.user._id) {
-        return Movie.findByIdAndRemove(req.params.movieId)
+        return foundMovie.remove()
           .then((remoteMovie) => {
             res.send({ data: remoteMovie });
           })
           .catch(next);
       }
-      throw new Forbidden('Нет полномочий для удаления данного фильма');
+      throw new Forbidden(NO_AUTHORITY);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        next(new NotFoundError('Фильм с указанным id не найден'));
+        next(new NotFoundError(MOVIE_ID_NOT_FOUND));
       }
       next(error);
     });

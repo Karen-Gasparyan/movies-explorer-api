@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
-
-const { IMAGE_REGEX } = require('../config');
+const validator = require('validator');
 
 const movieSchema = new mongoose.Schema({
   country: {
@@ -26,25 +25,22 @@ const movieSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true,
-    validate(value) {
-      const urlRegex = IMAGE_REGEX;
-      return urlRegex.test(value);
+    validate: {
+      validator: (value) => validator.isURL(value),
     },
   },
   trailer: {
     type: String,
     required: true,
-    validate(value) {
-      const urlRegex = IMAGE_REGEX;
-      return urlRegex.test(value);
+    validate: {
+      validator: (value) => validator.isURL(value),
     },
   },
   thumbnail: {
     type: String,
     required: true,
-    validate(value) {
-      const urlRegex = IMAGE_REGEX;
-      return urlRegex.test(value);
+    validate: {
+      validator: (value) => validator.isURL(value),
     },
   },
   owner: {
@@ -53,7 +49,7 @@ const movieSchema = new mongoose.Schema({
     required: true,
   },
   movieId: {
-    type: String,
+    type: Number,
     required: true,
   },
   nameRU: {

@@ -1,8 +1,8 @@
 const { Router } = require('express');
 const { celebrate, Joi } = require('celebrate');
+const validator = require('validator');
 
 const router = Router();
-const { IMAGE_REGEX } = require('../config');
 const {
   getMovies,
   createMovies,
@@ -18,10 +18,25 @@ router.post('/movies', celebrate({
     duration: Joi.number().required(),
     year: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string().required().regex(IMAGE_REGEX),
-    trailer: Joi.string().required().regex(IMAGE_REGEX),
-    thumbnail: Joi.string().required().regex(IMAGE_REGEX),
-    movieId: Joi.required(),
+    image: Joi.string().required().custom((value, helpers) => {
+      if (validator.isURL(value)) {
+        return value;
+      }
+      return helpers.message('Поле image заполнено некорректно');
+    }),
+    trailer: Joi.string().required().custom((value, helpers) => {
+      if (validator.isURL(value)) {
+        return value;
+      }
+      return helpers.message('Поле trailer заполнено некорректно');
+    }),
+    thumbnail: Joi.string().required().custom((value, helpers) => {
+      if (validator.isURL(value)) {
+        return value;
+      }
+      return helpers.message('Поле thumbnail заполнено некорректно');
+    }),
+    movieId: Joi.number().required(),
     nameRU: Joi.string().required(),
     nameEN: Joi.string().required(),
   }),

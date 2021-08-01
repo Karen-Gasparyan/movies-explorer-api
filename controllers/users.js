@@ -10,24 +10,32 @@ const NotFoundError = require('../errors/not-found-error');
 const BadRequest = require('../errors/bad-request-error');
 const Conflict = require('../errors/conflict-error');
 
+const {
+  INVALID_DATA,
+  SIGNUP_ERROR,
+  CONFLICT_EMAIL,
+  USER_NOT_FOUND,
+  USER_ID_NOT_FOUND,
+  UPDATE_ERROR,
+} = require('../constants');
+
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
       if (!user) {
-        throw new Unauthorized('Неправильные почта или пароль');
+        throw new Unauthorized(INVALID_DATA);
       }
       const token = jwt.sign(
         { _id: user._id },
         NODE_ENV === 'production' ? JWT_SECRET : JWT_DEV,
         { expiresIn: '7d' },
       );
-
       return res.send({ token });
     })
     .catch(() => {
-      next(new Unauthorized('Неправильные почта или пароль'));
+      next(new Unauthorized(INVALID_DATA));
     });
 };
 
@@ -45,12 +53,12 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные при регистрации пользователя'));
+        next(new BadRequest(SIGNUP_ERROR));
+      } else if (error.code === 11000) {
+        next(new Conflict(CONFLICT_EMAIL));
+      } else {
+        next(error);
       }
-      if (error.name === 'MongoError' && error.code === 11000) {
-        next(new Conflict('Пользователь с таким email уже зарегистрирован'));
-      }
-      next(error);
     });
 };
 
@@ -58,7 +66,7 @@ module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь не найден');
+        throw new NotFoundError(USER_NOT_FOUND);
       }
       return res.send({ data: user });
     })
@@ -75,14 +83,17 @@ module.exports.updateUser = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь с указанным _id не найден');
+        throw new NotFoundError(USER_ID_NOT_FOUND);
       }
       return res.send({ data: user });
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные при обновлении профиля'));
+        next(new BadRequest(UPDATE_ERROR));
+      } else if (error.code === 11000) {
+        next(new Conflict(CONFLICT_EMAIL));
+      } else {
+        next(error);
       }
-      next(error);
     });
 };
